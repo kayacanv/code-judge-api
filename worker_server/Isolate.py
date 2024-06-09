@@ -35,7 +35,7 @@ class Isolate:
 
     def _compile_code(self):
         result = self._run_command(
-            f'isolate -p --box-id={self.box_id} -E PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --run -- /usr/bin/g++ code.cpp -o code'
+            f'isolate -p --box-id={self.box_id} --meta={self.meta_path} -E PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --run -- /usr/bin/g++ code.cpp -o code'
         )
         return result.returncode == 0
 
@@ -50,7 +50,11 @@ class Isolate:
             lines = file.readlines()
             for line in lines:
                 # Remove any surrounding whitespace and split by colon
-                key, value = line.strip().split(':')
+                try:
+                    key, value = line.strip().split(':')
+                except Exception as e:
+                    print('Exception: ', e)
+                    continue
                 # Store the key-value pair in the dictionary
                 metrics[key] = value
 
@@ -59,8 +63,17 @@ class Isolate:
     def run_code(self, code) -> RunResult:
         self._write_code_to_file(code)
         compile_success = self._compile_code()
-        if compile_success:
-            run_code_status = self._run_code()
+        if not compile_success:
+            self.metadata_parser()
+            return RunResult(
+                RunStatus.COMPILE_ERROR,
+                '',
+                self.metadata,
+                '',
+                '',
+            )
+
+        run_code_status = self._run_code()
         self.metadata_parser()
         return RunResult(
             RunStatus.getRunStatus(
@@ -82,14 +95,13 @@ if __name__ == "__main__":
         print("HEY THIS IS PYTHON")
     """
     cpp_code = """
-        #include <iostream>
-        using namespace std;
-        int main() {
-            int a[4];
-
-            cout << "HELLOO" << endl;
-            return 0;
-        }
+    #include <iostream>
+    using namespace std;
+    int main() {
+        int a[4];
+        a[-100000] = 0; // Out of bounds access
+        return 0;
+    }
     """
     input_data = "Hello, world!"
 #    python_output = isolate.run_code(python_code, input_data, "python")

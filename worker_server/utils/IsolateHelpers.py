@@ -31,8 +31,9 @@ class RunResult:
         self.exitcode = exitcode
 
     def printResult(self):
-        print(f'status2: {self.status}')
-        print(f'output: {self.output}')
+        print('Result ==>')
+        print(f'status: {self.status}')
+#        print(f'output: {self.output}')
         print(f'metadata: {self.metadata}')
         print(f'error: {self.error}')
         print(f'exitcode: {self.exitcode}')

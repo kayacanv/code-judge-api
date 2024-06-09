@@ -1,15 +1,16 @@
 from Isolate import Isolate
 from Checker import Checker
-from utils.IsolateHelpers import RunStatus, RunResult
+from utils.IsolateHelpers import RunStatus
 
 
 class Evaluator:
     def __init__(self):
         self.isolate = Isolate()
 
-    def evaluate(self, code: str, expected_output: str) -> bool:
+    def evaluate(self, code: str, input: str, expected_output: str) -> bool:
         # Run the code using the Isolate class
         run_result = self.isolate.run_code(code)
+        run_result.printResult()
         if run_result.status == RunStatus.SUCCESS:
             return Checker.check_output(
                 run_result.output,

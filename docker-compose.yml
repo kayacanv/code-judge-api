@@ -1,0 +1,36 @@
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - mynetwork
+
+  main-app:
+    build: ./main_server
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    ports:
+      - "5000:5000"
+    networks:
+      - mynetwork
+  worker-app:
+    build: ./worker_server
+    tty: true
+    privileged: true # isolate needs --privileged flag
+    networks:
+      - mynetwork
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+
+networks:
+  mynetwork:
+    driver: bridge
